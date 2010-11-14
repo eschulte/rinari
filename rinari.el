@@ -245,7 +245,10 @@ argument allows editing of the console command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (run-ruby command)
+    (run-ruby (if (string-match "^/[^\/]+:\\(.*\\)" command)
+			      (match-string 1 command)
+			    command))
+
     (save-excursion
       (set-buffer "*ruby*")
       (set (make-local-variable 'inf-ruby-first-prompt-pattern) "^>> ")
