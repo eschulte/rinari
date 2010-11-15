@@ -121,6 +121,15 @@ address instead of the default 0.0.0.0."
 (defvar rinari-partial-regex "render :partial *=> *[@'\"]?\\([A-Za-z/_]+\\)['\"]?"
   "Regex that matches a partial rendering call.")
 
+(defconst rinari-tramp-prefix-regexp "^/[^/ ]+:"
+  "Match a filname accessed with TRAMP"
+)
+
+(defconst rinari-tramp-root-regexp (concat rinari-tramp-prefix "/$")
+  "Regexp that maches root directory in TRAMP
+convention."
+)
+
 (defadvice ruby-compilation-do (around rinari-compilation-do activate)
   "Set default directory to the root of the rails application
   before running ruby processes."
@@ -158,8 +167,14 @@ address instead of the default 0.0.0.0."
       dir
     (let ((new-dir (expand-file-name (file-name-as-directory "..") dir)))
       ;; regexp to match windows roots, tramp roots, or regular posix roots
-      (unless (string-match "\\(^[[:alpha:]]:/$\\|^/[^\/]+:/?$\\|^/$\\)" dir)
+      (unless (string-match (concat "\\(^[[:alpha:]]:/$\\|" rinari-tramp-root-regexp "\\|^/$\\)") dir)
 	(rinari-root new-dir)))))
+
+(defun rinari-prepare-tramp-command (cmd)
+  (if (string-match (concat rinari-tramp-prefix "\\(.*\\)") cmd)
+      (match-string 1 cmd)
+    cmd)
+)
 
 ;;--------------------------------------------------------------------------------
 ;; user functions
@@ -245,9 +260,7 @@ argument allows editing of the console command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (run-ruby (if (string-match "^/[^\/]+:\\(.*\\)" command)
-			      (match-string 1 command)
-			    command))
+    (run-ruby (rinari-prepare-tramp-command command))
 
     (save-excursion
       (set-buffer "*ruby*")
@@ -317,9 +330,7 @@ argument allows editing of the server command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (ruby-compilation-run (if (string-match "^/[^\/]+:\\(.*\\)" command)
-			      (match-string 1 command)
-			    command)))
+    (ruby-compilation-run (rinari-prepare-tramp-command command)))
   (rinari-launch))
 
 (defun rinari-web-server-restart (&optional edit-cmd-args)
