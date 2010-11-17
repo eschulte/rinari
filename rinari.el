@@ -125,7 +125,7 @@ address instead of the default 0.0.0.0."
   "Match a filname accessed with TRAMP"
 )
 
-(defconst rinari-tramp-root-regexp (concat rinari-tramp-prefix "/$")
+(defconst rinari-tramp-root-regexp (concat rinari-tramp-prefix-regexp "/$")
   "Regexp that maches root directory in TRAMP
 convention."
 )
@@ -171,7 +171,7 @@ convention."
 	(rinari-root new-dir)))))
 
 (defun rinari-prepare-tramp-command (cmd)
-  (if (string-match (concat rinari-tramp-prefix "\\(.*\\)") cmd)
+  (if (string-match (concat rinari-tramp-prefix-regexp "\\(.*\\)") cmd)
       (match-string 1 cmd)
     cmd)
 )
