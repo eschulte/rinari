@@ -103,12 +103,32 @@
 Leave this set to nil to not force any value for RAILS_ENV, and
 leave this to the environment variables outside of Emacs.")
 
+(defcustom rinari-web-server-address ""
+  "Use this to force server script to bind to a particular
+address instead of the default 0.0.0.0."
+  :type 'string
+)
+
+(defcustom rinari-web-server-port 0
+  "Make the server script listen to this port instead of the default 3000."
+  :type 'integer
+)
+
 (defvar rinari-minor-mode-prefixes
   (list ";" "'")
   "List of characters, each of which will be bound (with C-c) as a rinari-minor-mode keymap prefix.")
 
 (defvar rinari-partial-regex "render :partial *=> *[@'\"]?\\([A-Za-z/_]+\\)['\"]?"
   "Regex that matches a partial rendering call.")
+
+(defconst rinari-tramp-prefix-regexp "^/[^/ ]+:"
+  "Match a filname accessed with TRAMP"
+)
+
+(defconst rinari-tramp-root-regexp (concat rinari-tramp-prefix-regexp "/$")
+  "Regexp that maches root directory in TRAMP
+convention."
+)
 
 (defadvice ruby-compilation-do (around rinari-compilation-do activate)
   "Set default directory to the root of the rails application
@@ -147,8 +167,14 @@ leave this to the environment variables outside of Emacs.")
       dir
     (let ((new-dir (expand-file-name (file-name-as-directory "..") dir)))
       ;; regexp to match windows roots, tramp roots, or regular posix roots
-      (unless (string-match "\\(^[[:alpha:]]:/$\\|^/[^\/]+:/?$\\|^/$\\)" dir)
+      (unless (string-match (concat "\\(^[[:alpha:]]:/$\\|" rinari-tramp-root-regexp "\\|^/$\\)") dir)
 	(rinari-root new-dir)))))
+
+(defun rinari-prepare-tramp-command (cmd)
+  (if (string-match (concat rinari-tramp-prefix-regexp "\\(.*\\)") cmd)
+      (match-string 1 cmd)
+    cmd)
+)
 
 ;;--------------------------------------------------------------------------------
 ;; user functions
@@ -234,7 +260,8 @@ argument allows editing of the console command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (run-ruby command)
+    (run-ruby (rinari-prepare-tramp-command command))
+
     (save-excursion
       (set-buffer "*ruby*")
       (set (make-local-variable 'inf-ruby-first-prompt-pattern) "^>> ")
@@ -295,15 +322,20 @@ argument allows editing of the server command arguments."
 
     ;; Start web server in correct environment.
     ;; NOTE: Rails 3 has a bug and does not start in any environment but development for now.
-    (if rinari-rails-env
-        (setq command (concat command " -e " rinari-rails-env)))
-
+    (setq command (concat
+		   command
+		   (when rinari-rails-env
+		       (concat " -e " rinari-rails-env))
+		   (unless (equal rinari-web-server-address "")
+		     (concat " -b " rinari-web-server-address))
+		   (unless (eq rinari-web-server-port 0)
+		     (format " -p %d" rinari-web-server-port))))
     ;; For customization of the web server command with prefix arg.
     (setq command (if edit-cmd-args
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (ruby-compilation-run command))
+    (ruby-compilation-run (rinari-prepare-tramp-command command)))
   (rinari-launch))
 
 (defun rinari-web-server-restart (&optional edit-cmd-args)
