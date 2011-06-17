@@ -195,11 +195,8 @@ argument allows editing of the test command arguments."
   (or (string-match "test" (or (ruby-add-log-current-method)
 			       (file-name-nondirectory (buffer-file-name))))
       (rinari-find-test))
-  (let* ((funname (ruby-add-log-current-method))
-	 (fn (and funname
-		  (string-match "#\\(.*\\)" funname)
-		  (match-string 1 funname)))
-	 (path (buffer-file-name))
+  (let* ((fn (rinari-test-function-name))
+         (path (buffer-file-name))
          (ruby-options (list "-I" (expand-file-name "test" (rinari-root)) path))
 	 (default-command (mapconcat
                            'identity
@@ -208,8 +205,25 @@ argument allows editing of the test command arguments."
          (command (if edit-cmd-args
                       (read-string "Run w/Compilation: " default-command)
                     default-command)))
+    (message command)
     (if path (ruby-compilation-run command ruby-options)
       (message "no test available"))))
+
+(defun rinari-test-function-name()
+  (save-excursion
+    (end-of-line)
+    (if (re-search-backward (concat "^[ \t]*\\(def\\|test\\)[ \t]+"
+                                    "\\([\"'].*?[\"']\\|" ruby-symbol-re "*\\)"
+                                    "[ \t]*") nil t)
+        (let ((name (match-string 2)))
+          (if (string-match "^[\"']\\(.*\\)[\"']$" name)
+              (rinari-escape-test-function (match-string 1 name))
+            (unless (string-equal "setup" name)
+              name))))))
+
+(defun rinari-escape-test-function(string)
+  (replace-regexp-in-string
+   "\\?" "\\\\\\\\?" (replace-regexp-in-string " +" "_" string)))
 
 (defun rinari-console (&optional edit-cmd-args)
   "Runs a Rails console in a compilation buffer, with command history
@@ -270,11 +284,11 @@ from your conf/database.sql file."
 	       (server (or (cdr (assoc "host" database-alist)) "localhost"))
 	       (port (cdr (assoc "port" database-alist)))
 	       (sql-server (if port (concat server ":" port) server)))
-	  (cond ((string-match "mysql" adapter) 
+	  (cond ((string-match "mysql" adapter)
 		 (setf adapter "mysql"))
-                ((string-match "sqlite" adapter) 
+                ((string-match "sqlite" adapter)
 		 (setf adapter "sqlite"))
-		((string-match "postgresql" adapter) 
+		((string-match "postgresql" adapter)
 		 (setf adapter "postgres")))
 	  (eval (list (intern (concat "sql-" adapter))))
 	  (rename-buffer (sql-name environment)) (rinari-launch))))))
