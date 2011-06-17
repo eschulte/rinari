@@ -238,9 +238,14 @@ exec-to-string command, but it works and seems fast"
     (let ((moving (= (point) (process-mark proc))))
       (save-excursion
 	(goto-char (process-mark proc))
-	(insert (ansi-color-apply (ruby-compilation-adjust-paths string)))
+	(insert (ansi-color-apply
+                 (ruby-compilation-strip-control-m
+                  (ruby-compilation-adjust-paths string))))
 	(set-marker (process-mark proc) (point)))
       (if moving (goto-char (process-mark proc))))))
+
+(defun ruby-compilation-strip-control-m (string)
+  (replace-regexp-in-string "\r+$" "" string))
 
 (defun ruby-compilation-adjust-paths (string)
   (replace-regexp-in-string
