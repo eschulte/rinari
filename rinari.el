@@ -309,7 +309,7 @@ argument allows editing of the server command arguments."
 (defun rinari-web-server-restart (&optional edit-cmd-args)
   "If rinari-web-server is running, kill it and start a new server, otherwise just launch the server"
   (interactive "P")
-  (let ((rinari-web-server-buffer "*rails*"))
+  (let ((rinari-web-server-buffer (if (get-buffer "*rails*") "*rails*" "*server*")))
     (when (get-buffer rinari-web-server-buffer)
       (set-process-query-on-exit-flag (get-buffer-process rinari-web-server-buffer) nil)
       (kill-buffer rinari-web-server-buffer))
