@@ -479,9 +479,9 @@ renders and redirects to find the final controller or view."
 	 (specs (third type))
 	 (make (fourth type)))
      (eval `(defjump
-	      (quote ,(read (format "rinari-merb-find-%S" name)))
-	      (quote ,specs)
-	      'rinari-merb-root
+	      ,(read (format "rinari-merb-find-%S" name))
+	      ,specs
+	      rinari-merb-root
 	      ,(format "Go to the most logical %S given the current location" name)
 	      ,(if make `(quote ,make))
 	      'ruby-add-log-current-method))))
