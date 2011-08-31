@@ -200,7 +200,7 @@ of `ruby-program-name').  Runs the hooks `inferior-ruby-mode-hook'
   (setq name (or name "ruby"))
 
   (if (not (comint-check-proc inf-ruby-buffer))
-      (let ((commandlist (split-string command)))
+      (let ((commandlist (split-string-and-unquote command)))
         (set-buffer (apply 'make-comint name (car commandlist)
                            nil (cdr commandlist)))
         (inf-ruby-mode)))
