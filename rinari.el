@@ -344,6 +344,27 @@ argument allows editing of the server command arguments."
     (ruby-compilation-run command nil "server"))
   (rinari-launch))
 
+(defun rinari-bundle-exec (cmd)
+  "Runs a command through bundle exec, dumping output to a compilation buffer to
+  allow jumping between errors and source code."
+  (interactive
+   ;; if the user used --binstubs, we're good to go, otherwise we hope they have
+   ;; a system-wide "bundle".
+   (let ((bin (file-name-as-directory
+               (expand-file-name "bin" (rinari-root)))))
+     (list
+      (if (file-accessible-directory-p bin)
+          (concat
+           (expand-file-name (read-file-name "Command: " bin))
+           " "
+           (read-from-minibuffer "Arguments: "))
+        (let ((bundle-cmd (executable-find "bundle")))
+          (unless (null bundle-cmd)
+            (let ((bundle (concat bundle-cmd " exec ")))
+              (concat bundle " " (read-from-minibuffer bundle)))))))))
+  (ruby-compilation-run cmd)
+  (rinari-launch))
+
 (defun rinari-web-server-restart (&optional edit-cmd-args)
   "If rinari-web-server is running, kill it and start a new server, otherwise just launch the server"
   (interactive "P")
