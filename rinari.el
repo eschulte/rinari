@@ -664,6 +664,8 @@ renders and redirects to find the final controller or view."
       (rinari-generate "cells"
                        (and (string-match ".*/\\(.+?\\)_cell\.rb" path)
                             (match-string 1 path)))))
+   (features "F" ((t . "features/.*feature")) nil)
+   (steps "S" ((t . "features/step_definitions/.*")) nil)
    (environment "e" ((t . "config/environments/")) nil)
    (application "a" ((t . "config/application.rb")) nil)
    (configuration "n" ((t . "config/")) nil)
