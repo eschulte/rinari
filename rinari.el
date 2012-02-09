@@ -110,7 +110,8 @@ leave this to the environment variables outside of Emacs.")
   (list ";" "'")
   "List of characters, each of which will be bound (with C-c) as a rinari-minor-mode keymap prefix.")
 
-(defvar rinari-partial-regex "render :partial *=> *[@'\"]?\\([A-Za-z/_]+\\)['\"]?"
+(defvar rinari-partial-regex
+  "render \\(:partial *=> \\)?*[@'\"]?\\([A-Za-z/_]+\\)['\"]?"
   "Regex that matches a partial rendering call.")
 
 (defadvice ruby-compilation-do (around rinari-compilation-do activate)
@@ -397,7 +398,7 @@ Supported markup languages are: Erb, Haml"
   (interactive)
   (let ((line (buffer-substring-no-properties (line-beginning-position) (line-end-position))))
     (when (string-match rinari-partial-regex line)
-      (setq line (match-string 1 line))
+      (setq line (match-string 2 line))
       (let ((file))
         (if (string-match "/" line)
             (setq file (concat (rinari-root) "app/views/" (replace-regexp-in-string "\\([^/]+\\)/\\([^/]+\\)$" "\\1/_\\2" line)))
