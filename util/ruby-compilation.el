@@ -71,6 +71,11 @@
 (defvar ruby-compilation-executable "ruby"
   "What bin to use to launch the tests. Override if you use JRuby etc.")
 
+(defvar ruby-compilation-executable-args nil
+  "A list of command line arguments passed to
+ruby-compilation-executable in functions ruby-compilation-run and
+ruby-compilation-this-test")
+
 (defvar ruby-compilation-executable-rake "rake"
   "What bin to use to launch rake. Override if you use JRuby etc.")
 
@@ -115,6 +120,7 @@ name to construct the name of the compilation buffer."
   (interactive "FRuby Comand: ")
   (let ((name (or name (file-name-nondirectory (car (split-string cmd)))))
 	(cmdlist (append (list ruby-compilation-executable)
+                         ruby-compilation-executable-args
                          ruby-options
                          (split-string (expand-file-name cmd)))))
     (pop-to-buffer (ruby-compilation-do name cmdlist))))
@@ -190,9 +196,10 @@ name to construct the name of the compilation buffer."
   (let ((test-name (ruby-compilation-this-test-name)))
     (pop-to-buffer (ruby-compilation-do
                     (ruby-compilation-this-test-buffer-name test-name)
-                    (list ruby-compilation-executable
-                          (buffer-file-name)
-                          ruby-compilation-test-name-flag test-name)))))
+                    (append (list ruby-compilation-executable)
+                            ruby-compilation-executable-args
+                            (list (buffer-file-name)
+                                  ruby-compilation-test-name-flag test-name))))))
 
 (defun ruby-compilation-this-test-buffer-name (test-name)
   "The name of the buffer in which test-at-point will run."
