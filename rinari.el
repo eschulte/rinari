@@ -111,7 +111,7 @@ leave this to the environment variables outside of Emacs.")
   "List of characters, each of which will be bound (with control-c) as a prefix for `rinari-minor-mode-map'.")
 
 (defcustom rinari-inf-ruby-prompt-pattern
-  "^\\(irb([^)]+)\\|\\(\[[0-9]+\] \\)?[Pp]ry ?([^)]+)\\|\\(jruby-\\|JRUBY-\\)?[1-9]\\.[0-9]\\.[0-9]+\\(-?p?[0-9]+\\)?\\) ?\\(:[0-9]+\\)* ?[\]>*\"'/`]>? *"
+  "\\(^>> .*\\)\\|\\(^\\(irb([^)]+)\\|\\(\[[0-9]+\] \\)?[Pp]ry ?([^)]+)\\|\\(jruby-\\|JRUBY-\\)?[1-9]\\.[0-9]\\.[0-9]+\\(-?p?[0-9]+\\)?\\) ?\\(:[0-9]+\\)* ?[\]>*\"'/`]>? *\\)"
   "The value used for `inf-ruby-prompt-pattern' in `rinari-console' buffers."
   :group 'rinari)
 
