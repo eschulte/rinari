@@ -91,7 +91,7 @@
    "Return a list of all the rake tasks defined in the current
 projects.  I know this is a hack to put all the logic in the
 exec-to-string command, but it works and seems fast"
-   (delq nil (mapcar '(lambda(line)
+   (delq nil (mapcar #'(lambda(line)
 			(if (string-match "rake \\([^ ]+\\)" line) (match-string 1 line)))
 		     (split-string (shell-command-to-string "rake -T") "[\n]"))))
 
@@ -103,7 +103,7 @@ exec-to-string command, but it works and seems fast"
    "Return a list of all the cap tasks defined in the current
 project.  I know this is a hack to put all the logic in the
 exec-to-string command, but it works and seems fast"
-   (delq nil (mapcar '(lambda(line)
+   (delq nil (mapcar #'(lambda(line)
 			(if (string-match "cap \\([^ ]+\\)" line) (match-string 1 line)))
 		     (split-string (shell-command-to-string "cap -T") "[\n]"))))
 
