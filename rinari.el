@@ -125,19 +125,15 @@ leave this to the environment variables outside of Emacs.")
     ad-do-it
     (rinari-launch)))
 
-(defadvice ruby-compilation-do (before rinari-use-zeus activate)
-  "Use zeus when possible."
-  (if (rinari-use-zeus-p)
-      (cond ((equal (ad-get-arg 0) "server")
-	     (ad-set-arg 1 '("zeus" "server"))))))
+;; (defadvice ruby-compilation-do (before rinari-use-zeus activate)
+;;   "Use zeus when possible."
+;;   (if (rinari-use-zeus-p)
+;;       (cond ((equal (ad-get-arg 0) "server")
+;; 	     (ad-set-arg 1 '("zeus" "server"))))))
 
 (defadvice ruby-compilation-rake (around rinari-compilation-rake activate)
   "Set default directory to the rails root before running rake processes."
-  (let ((default-directory (or (rinari-root) default-directory))
-	(ruby-compilation-executable-rake
-	 (if (rinari-use-zeus-p)
-	     (concat "zeus " ruby-compilation-executable-rake)
-	   ruby-compilation-executable-rake)))
+  (let ((default-directory (or (rinari-root) default-directory)))
     ad-do-it
     (rinari-launch)))
 
@@ -294,15 +290,12 @@ user edit the console command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (run-ruby (if (rinari-use-zeus-p) "zeus console" command))
+    (run-ruby (if (ruby-compilation-use-zeus-p) "zeus console" command))
     (with-current-buffer "*ruby*"
       (set (make-local-variable 'inf-ruby-prompt-pattern)
            rinari-inf-ruby-prompt-pattern)
       (set (make-local-variable 'inf-ruby-first-prompt-pattern) inf-ruby-prompt-pattern)
       (rinari-launch))))
-
-(defun rinari-use-zeus-p ()
-  (file-exists-p (expand-file-name ".zeus.sock" (rinari-root))))
 
 (defun rinari-sql-buffer-name (env)
   "Return the name of the sql buffer for ENV."

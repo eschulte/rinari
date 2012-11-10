@@ -83,6 +83,9 @@
 (defvar ruby-compilation-reuse-buffers t
   "Whether to re-use the same comint buffer for focussed tests.")
 
+(defun ruby-compilation-use-zeus-p ()
+  (file-exists-p (expand-file-name ".zeus.sock")))
+
 ;;;###autoload
 (defun pcomplete/rake ()
   (pcomplete-here (pcmpl-rake-tasks)))
@@ -93,7 +96,12 @@ projects.  I know this is a hack to put all the logic in the
 exec-to-string command, but it works and seems fast"
    (delq nil (mapcar #'(lambda(line)
 			(if (string-match "rake \\([^ ]+\\)" line) (match-string 1 line)))
-		     (split-string (shell-command-to-string (concat ruby-compilation-executable-rake " -T")) "[\n]"))))
+		     (split-string
+		      (shell-command-to-string
+		       (concat (if (ruby-compilation-use-zeus-p)
+				   (concat "zeus " ruby-compilation-executable-rake)
+				 ruby-compilation-executable-rake ) " -T"))
+		      "[\n]"))))
 
 ;;;###autoload
 (defun pcomplete/cap ()
@@ -212,7 +220,8 @@ name to construct the name of the compilation buffer."
       (cadr (split-string this-test "#")))))
 
 (defun ruby-compilation-do (name cmdlist)
-  (let* ((buffer (apply 'make-comint name (car cmdlist) nil (cdr cmdlist)))
+  (let* ((cmdlist (if (ruby-compilation-use-zeus-p) (append '("zeus") cmdlist) cmdlist))
+	 (buffer (apply 'make-comint name (car cmdlist) nil (cdr cmdlist)))
          (proc (get-buffer-process buffer)))
     (with-current-buffer buffer
       ;; set buffer local variables and process ornaments
