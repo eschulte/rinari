@@ -93,7 +93,7 @@ projects.  I know this is a hack to put all the logic in the
 exec-to-string command, but it works and seems fast"
    (delq nil (mapcar #'(lambda(line)
 			(if (string-match "rake \\([^ ]+\\)" line) (match-string 1 line)))
-		     (split-string (shell-command-to-string "rake -T") "[\n]"))))
+		     (split-string (shell-command-to-string (concat ruby-compilation-executable-rake " -T")) "[\n]"))))
 
 ;;;###autoload
 (defun pcomplete/cap ()

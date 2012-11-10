@@ -133,7 +133,11 @@ leave this to the environment variables outside of Emacs.")
 
 (defadvice ruby-compilation-rake (around rinari-compilation-rake activate)
   "Set default directory to the rails root before running rake processes."
-  (let ((default-directory (or (rinari-root) default-directory)))
+  (let ((default-directory (or (rinari-root) default-directory))
+	(ruby-compilation-executable-rake
+	 (if (rinari-use-zeus-p)
+	     (concat "zeus " ruby-compilation-executable-rake)
+	   ruby-compilation-executable-rake)))
     ad-do-it
     (rinari-launch)))
 
