@@ -356,9 +356,11 @@ lets the user edit the server command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (pop-to-buffer (ruby-compilation-do "server" (if (ruby-compilation-use-zeus-p)
-							   '("zeus" "server")
-							 `("rails" ,command)))))
+    (pop-to-buffer (ruby-compilation-do
+		    "server"
+		    (split-string (concat (if (ruby-compilation-use-zeus-p)
+					      "zeus "
+					    "rails ") command)))))
   (rinari-launch))
 
 (defun rinari-web-server-restart (&optional edit-cmd-args)
