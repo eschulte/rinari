@@ -86,6 +86,11 @@
 (defun ruby-compilation-use-zeus-p ()
   (file-exists-p (expand-file-name ".zeus.sock")))
 
+(defun ruby-compilation-executable-rake ()
+  (if (ruby-compilation-use-zeus-p)
+      (concat "zeus " ruby-compilation-executable-rake)
+    ruby-compilation-executable-rake ))
+
 ;;;###autoload
 (defun pcomplete/rake ()
   (pcomplete-here (pcmpl-rake-tasks)))
@@ -98,9 +103,7 @@ exec-to-string command, but it works and seems fast"
 			(if (string-match "rake \\([^ ]+\\)" line) (match-string 1 line)))
 		     (split-string
 		      (shell-command-to-string
-		       (concat (if (ruby-compilation-use-zeus-p)
-				   (concat "zeus " ruby-compilation-executable-rake)
-				 ruby-compilation-executable-rake ) " -T"))
+		       (concat (ruby-compilation-executable-rake) " -T"))
 		      "[\n]"))))
 
 ;;;###autoload
@@ -142,7 +145,7 @@ name to construct the name of the compilation buffer."
 			(read-from-minibuffer "Edit Rake Command: " (concat task " "))
 		      task)))
     (pop-to-buffer (ruby-compilation-do
-		    "rake" (cons ruby-compilation-executable-rake
+		    "rake" (cons (ruby-compilation-executable-rake)
 				 (split-string rake-args))))))
 
 ;;;###autoload
@@ -220,8 +223,7 @@ name to construct the name of the compilation buffer."
       (cadr (split-string this-test "#")))))
 
 (defun ruby-compilation-do (name cmdlist)
-  (let* ((cmdlist (if (ruby-compilation-use-zeus-p) (append '("zeus") cmdlist) cmdlist))
-	 (buffer (apply 'make-comint name (car cmdlist) nil (cdr cmdlist)))
+  (let* ((buffer (apply 'make-comint name (car cmdlist) nil (cdr cmdlist)))
          (proc (get-buffer-process buffer)))
     (with-current-buffer buffer
       ;; set buffer local variables and process ornaments

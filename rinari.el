@@ -125,12 +125,6 @@ leave this to the environment variables outside of Emacs.")
     ad-do-it
     (rinari-launch)))
 
-;; (defadvice ruby-compilation-do (before rinari-use-zeus activate)
-;;   "Use zeus when possible."
-;;   (if (rinari-use-zeus-p)
-;;       (cond ((equal (ad-get-arg 0) "server")
-;; 	     (ad-set-arg 1 '("zeus" "server"))))))
-
 (defadvice ruby-compilation-rake (around rinari-compilation-rake activate)
   "Set default directory to the rails root before running rake processes."
   (let ((default-directory (or (rinari-root) default-directory)))
@@ -348,11 +342,9 @@ lets the user edit the server command arguments."
   (let* ((default-directory (rinari-root))
          (script (rinari-script-path))
          (command
-          (expand-file-name
-           (if (file-exists-p (expand-file-name "server" script))
-               "server"
-             "rails server")
-           script)))
+	  (if (file-exists-p (expand-file-name "server" script))
+	      (expand-file-name "server" script)
+	    "server")))
 
     ;; Start web server in correct environment.
     ;; NOTE: Rails 3 has a bug and does not start in any environment but development for now.
@@ -364,7 +356,9 @@ lets the user edit the server command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (ruby-compilation-run command nil "server"))
+    (pop-to-buffer (ruby-compilation-do "server" (if (ruby-compilation-use-zeus-p)
+							   '("zeus" "server")
+							 `("rails" ,command)))))
   (rinari-launch))
 
 (defun rinari-web-server-restart (&optional edit-cmd-args)
