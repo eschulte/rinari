@@ -284,12 +284,15 @@ user edit the console command arguments."
                       (read-string "Run Ruby: " (concat command " "))
                     command))
 
-    (run-ruby command)
+    (run-ruby (if (rinari-use-zeus-p) "zeus console" command))
     (with-current-buffer "*ruby*"
       (set (make-local-variable 'inf-ruby-prompt-pattern)
            rinari-inf-ruby-prompt-pattern)
       (set (make-local-variable 'inf-ruby-first-prompt-pattern) inf-ruby-prompt-pattern)
       (rinari-launch))))
+
+(defun rinari-use-zeus-p ()
+  (file-exists-p (expand-file-name ".zeus.sock")))
 
 (defun rinari-sql-buffer-name (env)
   "Return the name of the sql buffer for ENV."
