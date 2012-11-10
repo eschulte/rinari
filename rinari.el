@@ -125,6 +125,12 @@ leave this to the environment variables outside of Emacs.")
     ad-do-it
     (rinari-launch)))
 
+(defadvice ruby-compilation-do (before rinari-use-zeus activate)
+  "Use zeus when possible."
+  (if (rinari-use-zeus-p)
+      (cond ((equal (ad-get-arg 0) "server")
+	     (ad-set-arg 1 '("zeus" "server"))))))
+
 (defadvice ruby-compilation-rake (around rinari-compilation-rake activate)
   "Set default directory to the rails root before running rake processes."
   (let ((default-directory (or (rinari-root) default-directory)))
@@ -292,7 +298,7 @@ user edit the console command arguments."
       (rinari-launch))))
 
 (defun rinari-use-zeus-p ()
-  (file-exists-p (expand-file-name ".zeus.sock")))
+  (file-exists-p (expand-file-name ".zeus.sock" (rinari-root))))
 
 (defun rinari-sql-buffer-name (env)
   "Return the name of the sql buffer for ENV."
