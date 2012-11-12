@@ -201,8 +201,6 @@ Optional argument HOME is ignored."
   "Highlight the passed KEYWORDS in current buffer.
 Use `font-lock-add-keywords' in case of `ruby-mode' or
 `ruby-extra-keywords' in case of Enhanced Ruby Mode."
-  (print "called")
-  (print keywords)
   (if (boundp 'ruby-extra-keywords)
       (progn
 	(setq ruby-extra-keywords (append ruby-extra-keywords keywords))
