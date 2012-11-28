@@ -46,6 +46,7 @@
 ;; ;; rinari
 ;; (add-to-list 'load-path "~/.emacs.d/rinari")
 ;; (require 'rinari)
+;; (global-rinari-mode)
 
 ;; Whether installed through ELPA or from source you probably want to
 ;; add the following lines to your .emacs file:
@@ -87,6 +88,16 @@
 (defgroup rinari nil
   "Rinari customizations."
   :prefix "rinari-"
+  :group 'rinari)
+
+(defcustom rinari-major-modes nil
+  "Major Modes from which to launch Rinari."
+  :type '(repeat symbol)
+  :group 'rinari)
+
+(defcustom rinari-exclude-major-modes nil
+  "Major Modes in which to never launch Rinari."
+  :type '(repeat symbol)
   :group 'rinari)
 
 (defcustom rinari-tags-file-name
@@ -223,6 +234,8 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
           do (when (string-match-p re (buffer-file-name))
                (rinari-highlight-keywords keywords)))))
 
+
+;; TODO: only in ruby mode!!
 (add-hook 'rinari-minor-mode-hook 'rinari-apply-keywords-for-file-type)
 
 ;;--------------------------------------------------------------------------------
@@ -817,23 +830,35 @@ and redirects."
   "Call function `rinari-minor-mode' if inside a rails project.
 Otherwise, disable that minor mode if currently enabled."
   (interactive)
-  (let* ((root (rinari-root)) (r-tags-path (concat root rinari-tags-file-name)))
-    (if root (progn
-               (set (make-local-variable 'tags-file-name)
-                    (and (file-exists-p r-tags-path) r-tags-path))
-               (run-hooks 'rinari-minor-mode-hook)
-               (rinari-minor-mode t))
-      (if (and (fboundp 'rinari-minor-mode) rinari-minor-mode) (rinari-minor-mode)))))
+  (let* ((root (rinari-root))
+         (r-tags-path (concat root rinari-tags-file-name)))
+    (if root
+        (progn
+          (set (make-local-variable 'tags-file-name)
+               (and (file-exists-p r-tags-path) r-tags-path))
+          (run-hooks 'rinari-minor-mode-hook)
+          (rinari-minor-mode t))
+      (when (and (fboundp 'rinari-minor-mode) rinari-minor-mode)
+        (rinari-minor-mode)))))
 
-;;;###autoload
-(defvar rinari-major-modes
-  (if (boundp 'rinari-major-modes)
-      rinari-major-modes
-    (list 'find-file-hook 'mumamo-after-change-major-mode-hook 'dired-mode-hook))
-  "Major Modes from which to launch Rinari.")
+(defun rinari-launch-maybe ()
+  "Call `rinari-launch' if customized to do so.
+Both `rinari-major-modes' and `rinari-exclude-major-modes' will
+be used to make the decision.  When the global rinari mode is
+active, the default is to try to launch rinari in any major
+mode.  If `rinari-major-modes' is non-nil, then launching will
+happen only in the listed modes.  Major modes listed in
+`rinari-exclude-major-modes' will never have rinari
+auto-launched, but `rinari-launch' can still be used to manually
+enable rinari in buffers using those modes."
+  (when (and (or (null rinari-major-modes)
+                 (memq major-mode rinari-major-modes))
+             (or (null rinari-exclude-major-modes)
+                 (not (memq major-mode rinari-exclude-major-modes))))
+    (rinari-launch)))
 
-;;;###autoload
-(dolist (hook rinari-major-modes) (add-hook hook 'rinari-launch))
+(dolist (hook '(mumamo-after-change-major-mode-hook dired-mode-hook))
+  (add-hook hook 'rinari-launch))
 
 (defadvice cd (after rinari-on-cd activate)
   "Call `rinari-launch' when changing directories.
@@ -847,6 +872,15 @@ into and out of rails project directories."
   nil
   " Rinari"
   rinari-minor-mode-map)
+
+;;;###autoload
+(define-global-minor-mode global-rinari-mode
+  rinari-minor-mode rinari-launch-maybe)
+
+;;;###autoload
+(progn
+  (message "Warning: Calling global-rinari-mode automatically for you. Future versions of rinari will require you to do this yourself.")
+  (global-rinari-mode))
 
 (provide 'rinari)
 
