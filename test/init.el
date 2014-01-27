@@ -20,7 +20,7 @@
 	  (rails-root (format "%s" (concat (file-name-directory
 					    (or load-file-name buffer-file-name))
 					   "rails-app/"))))
-      (flet ((here-to-here (start func end)
+      (cl-flet ((here-to-here (start func end)
 			   (let ((default-directory rails-root))
 			     ;; go to start
 			     (find-file (car start))
