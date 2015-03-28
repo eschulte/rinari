@@ -298,7 +298,7 @@ Use `font-lock-add-keywords' in case of `ruby-mode' or
                 ("^ +\\(exists\\) +\\([^[:space:]]+\\)" 2 3 nil 0 1)
                 ("^ +\\(conflict\\) +\\([^[:space:]]+\\)" 2 3 nil 0 0))
             ruby-compilation-error-regexp-alist))
-         (script-path (concat (rinari--wrap-rails-command script) " ")))
+         (script-path (concat (rinari--wrap-rails-command script t) " ")))
     (when (string-match-p "^\\(db\\)?console" script)
       (error "Use the dedicated rinari function to run this interactive script"))
     (ruby-compilation-run (concat script-path " " (read-from-minibuffer (concat script " ")))
@@ -354,7 +354,7 @@ arguments."
      ((file-exists-p script-rails) script-rails)
      (t (executable-find "rails")))))
 
-(defun rinari--wrap-rails-command (command)
+(defun rinari--wrap-rails-command (command &optional not-append-executable)
   "Given a COMMAND such as 'console', return a suitable command line.
 Where the corresponding script is executable, it will be run
 as-is.  Otherwise, as can be the case on Windows, the command will
@@ -366,7 +366,7 @@ be prepended with `ruby-compilation-executable'."
           (if (file-exists-p script-command)
               script-command
             (concat (rinari--rails-path) " " command))))
-    (if (file-executable-p (first (split-string-and-unquote command-line)))
+    (if (or not-append-executable (file-executable-p (first (split-string-and-unquote command-line))))
         command-line
       (concat ruby-compilation-executable " " command-line))))
 
@@ -438,7 +438,7 @@ errors and source code.  Optional prefix argument EDIT-CMD-ARGS
 lets the user edit the server command arguments."
   (interactive "P")
   (let* ((default-directory (rinari-root))
-         (command (rinari--wrap-rails-command "server")))
+         (command (rinari--wrap-rails-command "server" t)))
 
     ;; Start web server in correct environment.
     (when rinari-rails-env
