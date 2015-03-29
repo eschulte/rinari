@@ -415,7 +415,10 @@ Looks up login information from your conf/database.sql file."
           (set (make-local-variable 'sql-user) (cdr (assoc "username" database-alist)))
           (set (make-local-variable 'sql-password) (cdr (assoc "password" database-alist)))
           (set (make-local-variable 'sql-database) (or (cdr (assoc "database" database-alist))
-                                                       (concat (file-name-nondirectory (rinari-root))
+                                                       (and (string-match "sqlite" adapter)
+                                                           (concat "db/" environment ".sqlite3"))
+                                                         (concat
+                                                            (file-name-nondirectory (directory-file-name (rinari-root)))
                                                                "_" environment)))
           (set (make-local-variable 'sql-server) (if port (concat server ":" port) server))
           (funcall
