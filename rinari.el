@@ -449,19 +449,19 @@ errors and source code.  Optional prefix argument EDIT-CMD-ARGS
 lets the user edit the server command arguments."
   (interactive "P")
   (let* ((default-directory (rinari-root))
-         (command (rinari--wrap-rails-command "server")))
+         (command (rinari--maybe-wrap-with-ruby
+                   (rinari--wrap-rails-command "server"))))
 
     ;; Start web server in correct environment.
     (when rinari-rails-env
-      (setq command (concat command " -e " rinari-rails-env)))
+      (setq command (concat command " " rinari-rails-env)))
 
     ;; For customization of the web server command with prefix arg.
     (setq command (if edit-cmd-args
                       (read-string "Run Ruby: " (concat command " "))
                     command))
-
-    (ruby-compilation-run command nil "server"))
-  (rinari-launch))
+    (with-current-buffer (run-ruby command "rails server")
+      (rinari-launch))))
 
 (defun rinari-web-server-restart (&optional edit-cmd-args)
   "Ensure a fresh `rinari-web-server' is running, first killing any old one.
