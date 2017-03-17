@@ -471,7 +471,7 @@ lets the user edit the server command arguments."
 Optional prefix argument EDIT-CMD-ARGS lets the user edit the
 server command arguments."
   (interactive "P")
-  (let ((rinari-web-server-buffer "*server*"))
+  (let ((rinari-web-server-buffer (if (get-buffer "*rails*") "*rails*" "*server*")))
     (when (get-buffer rinari-web-server-buffer)
       (set-process-query-on-exit-flag (get-buffer-process rinari-web-server-buffer) nil)
       (kill-buffer rinari-web-server-buffer))
