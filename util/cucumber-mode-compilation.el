@@ -49,7 +49,25 @@
 (require 'inf-ruby)
 (require 'which-func)
 
-(defvar cucumber-compilation-executable "cucumber"
+;; This could be:
+;;
+;; "cucumber"
+;; to run cucumber directly
+;;
+;; -- or --
+;;
+;; (list "rake" "cucumber")
+;; to run cucumber via rake so the test DB setup is done (which runs
+;; cucumber via bundle)
+;;
+;; -- or --
+;;
+;; (list "bundle" "exec" "cucumber")
+;; to run cucumber via bundle but skip the test DB setup.
+;;
+;; Not sure how to do this but it would be nice if the three (or more)
+;; options could be switched between easily
+(defvar cucumber-compilation-executable (list "bundle" "exec" "cucumber")
   "The binary to run the feature scenarios. Override if you use JRuby etc.")
 
 (defvar cucumber-compilation-error-regexp
@@ -74,6 +92,13 @@
     ad-do-it
     (rinari-launch)))
 
+(defun flatten (LIST)
+  "flattens LIST"
+  (cond
+   ((atom LIST) (list LIST))
+   ((null (cdr LIST)) (flatten (car LIST)))
+   (t (append (flatten (car LIST)) (flatten (cdr LIST))))))
+
 ;;;###autoload
 (defun cucumber-compilation-this-buffer ()
   "Run the current buffer's scenarios through cucumber."
@@ -88,10 +113,11 @@
         (profile-name (cucumber-compilation-profile-name)))
     (pop-to-buffer (cucumber-compilation-do
                     (cucumber-compilation-this-test-buffer-name scenario-name)
-                    (list cucumber-compilation-executable
-                          (buffer-file-name)
-                          "-p" profile-name
-                          "-s" scenario-name)))))
+                    (flatten
+		     (list cucumber-compilation-executable
+			   (buffer-file-name)
+			   "-p" profile-name
+			   "-s" scenario-name))))))
 
 (defun cucumber-compilation-this-test-buffer-name (scenario-name)
   "The name of the buffer in which test-at-point will run."
@@ -108,9 +134,10 @@
   (interactive)
   (let* ((name (file-name-nondirectory (car (split-string cmd))))
          (profile-name (cucumber-compilation-profile-name))
-         (cmdlist (list cucumber-compilation-executable
-                        "-p" profile-name
-                        (expand-file-name cmd))))
+         (cmdlist (flatten
+		   (list cucumber-compilation-executable
+			 "-p" profile-name
+			 (expand-file-name cmd)))))
     (pop-to-buffer (cucumber-compilation-do name cmdlist))))
 
 
